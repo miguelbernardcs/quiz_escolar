@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Quiz Escolar - 7º Ano</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial Black', Gadget, sans-serif;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 920px;
+            height: 540px;
+            background-color: #e3edf2;
+            border: 8px solid #000;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .top-bar {
+            width: 100%;
+            height: 70px;
+            background-color: #b8bacf;
+            border-bottom: 6px solid #000;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            justify-content: space-between;
+            position: relative;
+            z-index: 10;
+        }
+
+        .menu-icon {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .menu-icon div {
+            width: 35px;
+            height: 5px;
+            background-color: #555;
+            border-radius: 2px;
+            transition: 0.3s;
+        }
+
+        .menu-icon:hover div {
+            background-color: #000;
+            transform: scaleX(1.1);
+        }
+
+        .next-arrow {
+            font-size: 45px;
+            color: #444;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s, color 0.2s;
+            visibility: hidden; 
+        }
+
+        #screen-menu {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 25px;
+            padding: 40px 50px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .subject-card {
+            height: 160px;
+            border: 6px solid #111;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 26px;
+            color: #fff;
+            text-shadow: 3px 3px #000;
+            cursor: pointer;
+            box-shadow: inset -8px -8px rgba(0,0,0,0.2), 0 8px #000;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            gap: 10px;
+        }
+
+        .subject-card span {
+            font-size: 40px;
+            filter: drop-shadow(2px 2px 0px #000);
+        }
+
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: inset -8px -8px rgba(0,0,0,0.2), 0 14px #000;
+        }
+
+        .subject-card:active {
+            transform: translateY(4px);
+            box-shadow: inset -4px -4px rgba(0,0,0,0.2), 0 4px #000;
+        }
+
+        .mat { background-color: #1faae2; }
+        .his { background-color: #dc3226; }
+        .geo { background-color: #e59b24; }
+        .por { background-color: #1cb81c; }
+        .cie { background-color: #6830f3; }
+        .edf { background-color: #f1c40f; }
+
+        #screen-quiz {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            height: calc(100% - 70px);
+            justify-content: space-between;
+            padding: 30px 20px;
+        }
+
+        .question-animation {
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .question-text {
+            font-size: 32px;
+            text-align: center;
+            color: #000;
+            max-width: 800px;
+            line-height: 1.3;
+        }
+
+        .score-highlight {
+            font-size: 70px;
+            color: #1cb81c;
+            text-shadow: 2px 2px #000;
+            display: block;
+            margin-top: 15px;
+            animation: popSuccess 0.6s ease-out forwards;
+        }
+
+        .button-zone {
+            display: flex;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .btn-game {
+            width: 190px;
+            height: 75px;
+            border: 6px solid #000;
+            border-radius: 15px;
+            background-color: #a7a9be;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px #000;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        .btn-game:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px #000;
+            background-color: #bcbed4;
+        }
+
+        .btn-game:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px #000;
+        }
+
+        .btn-game:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 6px #000;
+        }
+
+        .btn-exit {
+            background-color: #dc3226;
+            color: white;
+            text-shadow: 2px 2px #000;
+        }
+        .btn-exit:hover {
+            background-color: #b5251a;
+        }
+
+        #feedback {
+            font-size: 32px;
+            font-weight: bold;
+            height: 40px;
+        }
+
+        .correct-anim {
+            animation: popSuccess 0.5s ease-out forwards;
+            color: #1cb81c;
+        }
+
+        .wrong-anim {
+            animation: shakeError 0.4s ease-in-out;
+            color: #dc3226;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes popSuccess {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <div class="top-bar">
+            <div class="menu-icon" id="btn-voltar-menu" title="Voltar para Matérias">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <div class="next-arrow" id="btn-proxima">➔</div>
+        </div>
+
+        <div id="screen-menu">
+            <div class="subject-card mat" data-materia="mat"><span>🧮</span>Matemática</div>
+            <div class="subject-card his" data-materia="his"><span>⏳</span>História</div>
+            <div class="subject-card geo" data-materia="geo"><span>🗺️</span>Geografia</div>
+            <div class="subject-card por" data-materia="por"><span>🗣️</span>Português</div>
+            <div class="subject-card cie" data-materia="cie"><span>⚡</span>Ciências</div>
+            <div class="subject-card edf" data-materia="edf"><span>⚽</span>Ed. Fís.</div>
+        </div>
+
+        <div id="screen-quiz">
+            <div class="question-text" id="question-field">Carregando...</div>
+            <div id="feedback"></div>
+            <div class="button-zone" id="button-zone">
+                <button class="btn-game btn-exit" id="btn-sair">SAIR DO QUIZ</button>
+                <button class="btn-game" id="btn-falso">FALSO</button>
+                <button class="btn-game" id="btn-verdadeiro">VERDADEIRO</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Banco de Dados Nível Médio (7º Ano) - Ordem exata: V, F, F, F, V, F, V, F, V, F
+        const database = {
+            mat: [
+                { q: "Os números inteiros incluem os positivos, os negativos e o zero.", a: true },
+                { q: "O resultado de -5 somado com -3 é igual a 8 positivo.", a: false },
+                { q: "Em uma equação de primeiro grau, a letra 'x' representa sempre o número 1.", a: false },
+                { q: "Um ângulo obtuso é aquele que mede exatamente 90 graus.", a: false },
+                { q: "O MMC (Mínimo Múltiplo Comum) entre 2 e 3 é o número 6.", a: true },
+                { q: "Todo número multiplicado por zero tem como resultado o próprio número.", a: false },
+                { q: "A área de um retângulo é calculada multiplicando a base pela altura.", a: true },
+                { q: "50% de um valor é o mesmo que dividir esse valor por quatro.", a: false },
+                { q: "A raiz quadrada do número 81 é igual a 9.", a: true },
+                { q: "Frações equivalentes são aquelas que têm sempre o mesmo numerador.", a: false }
+            ],
+            his: [
+                { q: "O feudalismo foi o sistema econômico e social predominante na Idade Média.", a: true },
+                { q: "A colonização do Brasil foi iniciada pelos espanhóis no ano de 1500.", a: false },
+                { q: "Os escravizados trazidos ao Brasil vinham da Europa em navios negreiros.", a: false },
+                { q: "O Renascimento foi um movimento que rejeitou totalmente a arte e a cultura.", a: false },
+                { q: "As Grandes Navegações buscavam descobrir novas rotas comerciais para as Índias.", a: true },
+                { q: "Martinho Lutero foi um papa católico que liderou a chamada Contrarreforma.", a: false },
+                { q: "Os bandeirantes exploraram o interior do Brasil em busca de ouro.", a: true },
+                { q: "A Inconfidência Mineira conseguiu declarar o Brasil independente de Portugal.", a: false },
+                { q: "A sociedade açucareira no Brasil colonial era formada principalmente por senhores e escravizados.", a: true },
+                { q: "A Peste Negra foi uma doença que surgiu no Brasil e dizimou os indígenas.", a: false }
+            ],
+            geo: [
+                { q: "O Brasil está localizado em grande parte no Hemisfério Sul do planeta.", a: true },
+                { q: "A região Sul é a maior região do Brasil em extensão territorial.", a: false },
+                { q: "O relevo brasileiro é caracterizado por grandes cadeias de montanhas com neve.", a: false },
+                { q: "O clima semiárido no Brasil é encontrado principalmente na Região Sul.", a: false },
+                { q: "O processo de urbanização no Brasil acelerou junto com a industrialização do país.", a: true },
+                { q: "A Floresta Amazônica é um bioma exclusivo do território brasileiro.", a: false },
+                { q: "As bacias hidrográficas são formadas por um rio principal e seus afluentes.", a: true },
+                { q: "O meridiano de Greenwich divide a Terra em Hemisfério Norte e Sul.", a: false },
+                { q: "O êxodo rural é a migração de pessoas do campo para morar nas cidades.", a: true },
+                { q: "A Caatinga é um bioma caracterizado por muitas chuvas durante o ano todo.", a: false }
+            ],
+            por: [
+                { q: "O sujeito da oração é o termo sobre o qual se faz uma declaração.", a: true },
+                { q: "Na frase 'Nós fomos ao parque', o verbo está na terceira pessoa do plural.", a: false },
+                { q: "Os verbos indicam apenas ações, nunca estados ou fenômenos da natureza.", a: false },
+                { q: "Palavras oxítonas são aquelas que têm a penúltima sílaba como a mais forte.", a: false },
+                { q: "Um texto narrativo precisa ter personagens, tempo, espaço e um enredo.", a: true },
+                { q: "O predicado é obrigatoriamente a primeira palavra que aparece em uma frase.", a: false },
+                { q: "Um substantivo abstrato nomeia sentimentos, qualidades ou estados.", a: true },
+                { q: "A vírgula deve ser usada obrigatoriamente para separar o sujeito do verbo.", a: false },
+                { q: "Sinônimos são palavras diferentes que possuem significados muito parecidos.", a: true },
+                { q: "A palavra 'porque', junta e sem acento, é usada apenas para fazer perguntas diretas.", a: false }
+            ],
+            cie: [
+                { q: "A fotossíntese é o processo pelo qual as plantas produzem seu próprio alimento.", a: true },
+                { q: "Os vírus são formados por várias células chamadas de procariontes.", a: false },
+                { q: "A água ferve e começa a evaporar quando atinge a temperatura de 50 graus Celsius.", a: false },
+                { q: "Os animais classificados como invertebrados possuem uma coluna vertebral bem desenvolvida.", a: false },
+                { q: "O aquecimento global é agravado pelo aumento de gases como o gás carbônico.", a: true },
+                { q: "As vacinas são usadas como remédio para curar quem já está doente com infecção.", a: false },
+                { q: "As teias alimentares mostram como a energia passa de um ser vivo para outro.", a: true },
+                { q: "O Sol é considerado um planeta que gira em torno da Terra e das outras estrelas.", a: false },
+                { q: "A camada de ozônio protege o planeta Terra dos raios ultravioletas do Sol.", a: true },
+                { q: "O sistema respiratório humano tem o coração como seu principal órgão.", a: false }
+            ],
+            edf: [
+                { q: "O aquecimento antes das atividades físicas ajuda a prevenir lesões nos músculos.", a: true },
+                { q: "No basquete, o jogador pode dar quantos passos quiser enquanto segura a bola.", a: false },
+                { q: "A capoeira é uma mistura de dança e luta que foi criada originalmente na Europa.", a: false },
+                { q: "O futebol de salão (futsal) é jogado oficialmente com 11 jogadores em cada time.", a: false },
+                { q: "Os Jogos Olímpicos reúnem atletas de várias partes do mundo em diferentes esportes.", a: true },
+                { q: "Na natação, o estilo 'crawl' é aquele em que se nada de costas para o fundo da piscina.", a: false },
+                { q: "A frequência cardíaca aumenta quando fazemos exercícios físicos intensos.", a: true },
+                { q: "O voleibol é jogado apenas com os pés, não sendo permitido usar as mãos na bola.", a: false },
+                { q: "Fazer alongamentos ajuda a melhorar a flexibilidade e a postura do corpo.", a: true },
+                { q: "O handebol é um esporte onde o principal objetivo é fazer cestas usando uma raquete.", a: false }
+            ]
+        };
+
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let acertos = 0; 
+        let answered = false;
+
+        function showQuestion() {
+            answered = false;
+            
+            document.getElementById('btn-falso').disabled = false;
+            document.getElementById('btn-verdadeiro').disabled = false;
+
+            const feedbackField = document.getElementById('feedback');
+            const questionField = document.getElementById('question-field');
+            
+            feedbackField.innerText = "";
+            feedbackField.className = ""; 
+            
+            questionField.innerHTML = `Q${currentIndex + 1}: ${currentQuestions[currentIndex].q}`;
+            
+            questionField.classList.remove('question-animation');
+            void questionField.offsetWidth; 
+            questionField.classList.add('question-animation');
+        }
+
+        function startQuiz(subject) {
+            currentQuestions = database[subject];
+            currentIndex = 0; 
+            acertos = 0; 
+            
+            document.getElementById('button-zone').style.display = 'flex';
+            document.getElementById('screen-menu').style.display = 'none';
+            document.getElementById('screen-quiz').style.display = 'flex';
+            
+            showQuestion();
+        }
+
+        function backToMenu() {
+            document.getElementById('button-zone').style.display = 'flex';
+            document.getElementById('screen-quiz').style.display = 'none';
+            document.getElementById('screen-menu').style.display = 'grid';
+        }
+
+        function checkAnswer(userChoice) {
+            if (answered) return; 
+            
+            answered = true;
+            
+            document.getElementById('btn-falso').disabled = true;
+            document.getElementById('btn-verdadeiro').disabled = true;
+
+            const correctAnswer = currentQuestions[currentIndex].a;
+            const feedbackField = document.getElementById('feedback');
+
+            if (userChoice === correctAnswer) {
+                acertos++; 
+                feedbackField.innerText = "CORRETO! 🎉";
+                feedbackField.className = "correct-anim";
+            } else {
+                feedbackField.innerText = "ERRADO! ❌";
+                feedbackField.className = "wrong-anim";
+            }
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 1500);
+        }
+
+        function nextQuestion() {
+            currentIndex++; 
+            if (currentIndex < currentQuestions.length) {
+                showQuestion();
+            } else {
+                const questionField = document.getElementById('question-field');
+                const feedbackField = document.getElementById('feedback');
+                
+                feedbackField.innerText = "Matéria Concluída!";
+                feedbackField.className = "";
+                
+                document.getElementById('button-zone').style.display = 'none';
+                
+                questionField.innerHTML = `Sua nota:<br><span class="score-highlight">[${acertos} de 10]</span>`;
+                
+                setTimeout(() => {
+                    backToMenu();
+                }, 5000);
+            }
+        }
+
+        const cards = document.querySelectorAll('.subject-card');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const materia = card.getAttribute('data-materia');
+                startQuiz(materia);
+            });
+        });
+
+        document.getElementById('btn-voltar-menu').addEventListener('click', backToMenu);
+        document.getElementById('btn-sair').addEventListener('click', backToMenu);
+        document.getElementById('btn-falso').addEventListener('click', () => checkAnswer(false));
+        document.getElementById('btn-verdadeiro').addEventListener('click', () => checkAnswer(true));
+
+    </script>
+</body>
+</html>
